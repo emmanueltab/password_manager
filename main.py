@@ -117,7 +117,7 @@ def does_stuff_to_files(chosen_file, mainn): # storage menu
             
 
             os.system('cls')
-            print("if you enter a taken key then the new password will replace the old one. enter <-stop-> for either key or password and youll return to storage menu")
+            print("if you enter a taken key then the new password will replace the old one.\n enter <-stop-> for either key or password and youll return to storage menu")
             print("---------------------------------------------------------------------------------------------------------------------------------------------------")
             while True:
                 keyy = input('enter key: ')
