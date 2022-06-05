@@ -22,7 +22,7 @@ def create_passwordsTXT(mainnn):
 
         pw = {}
         pw2 = json.dumps(pw)
-        with open(f"passwords\{ask_for_name}.json", 'w') as writer:
+        with open(f"passwords\{ask_for_name}.json", 'w') as writer: # creates json file
             writer.write(pw2)
             print("new .json file has been created!")
             writer.close()
@@ -141,9 +141,10 @@ def does_stuff_to_files(chosen_file, mainn): # storage menu
                 
                     
 def pick_create_txt(): # main
-    onlyfiles = next(os.walk("passwords"))[2] # list of all the txt files in passwords
+    onlyfiles = next(os.walk("passwords"))[2] # list of all the files in passwords
     sorted(onlyfiles)
     first_options = ["new"] + onlyfiles
+
 
     
 
@@ -152,7 +153,7 @@ def pick_create_txt(): # main
         print(storage)
     print("--------------------------------------------------------\npick an option from above^(include .json when picking files)")
     while True:
-        picker = input("> ")
+        picker = input("> ") 
         if picker not in first_options:
             print("that isnt an option.")
 
