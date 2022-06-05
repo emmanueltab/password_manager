@@ -9,10 +9,10 @@ sorted(onlyfiles)
 def create_passwordsTXT(mainnn):
     onlyfiles = next(os.walk("passwords"))[2] # list of all the txt files in passwords
     sorted(onlyfiles)
-    print("the storages:\n-----------------------------------")
+    print("storage creator\n\nthe storages:\n-----------------------------------")
     for file in onlyfiles:
         print(file)
-    print("-----------------------------------\nentering a taken name wont do anything\nenter '<!back>' to return to main\n-----------------------------------")
+    print("-----------------------------------\nentering a taken name wont do anything\nenter '<!back>' to return to the storage menu\n-----------------------------------")
     ask_for_name = input("enter a name to create a storage(you dont have to enter .json):\n> ")
   # if there are no txt files for the passwords thne it will do this
     if ask_for_name == "<!back>":
@@ -22,7 +22,7 @@ def create_passwordsTXT(mainnn):
 
         pw = {}
         pw2 = json.dumps(pw)
-        with open(f"passwords\{ask_for_name}.json", 'w') as writer:
+        with open(f"passwords\{ask_for_name}.json", 'w') as writer: # creates json file
             writer.write(pw2)
             print("new .json file has been created!")
             writer.close()
@@ -33,8 +33,9 @@ def create_passwordsTXT(mainnn):
 def does_stuff_to_files(chosen_file, mainn): # storage menu
     os.system('cls')
     optionss = ("delete_st", "return", "add", "back", "show", "remove", "help")
-    print("the options(pick one):\ndelete_st - deletes storage\nreturn - returns password\nadd - adds a new password\nback - goes back to the main thing\nshow - shows all the passwords\nremove - removes password\nhelp - clears screen and prints commands")
-    print(f"-----------------------------------\nwhat would you like to do with {chosen_file}?")
+    print("storage modifyer\n")
+    print("the options(pick one):\ndelete_st - deletes storage\nreturn - returns password\nadd - adds a new password\nback - goes back to the storage menu\nshow - shows all the passwords\nremove - removes password\nhelp - clears screen and shows commands")
+    print(f"----------------------------------------\nwhat would you like to do with {chosen_file}?")
     
 
 
@@ -56,7 +57,7 @@ def does_stuff_to_files(chosen_file, mainn): # storage menu
 
         elif operations == "help":
             os.system("cls")   # prints help commands
-            print("the options(pick one):\ndelete_st - deletes storage\nreturn - returns password\nadd - adds a new password\nback - goes back to the main thing\nshow - shows all the passwords\nremove - removes password\nhelp - clears the screen and prints commands")
+            print("the options(pick one):\ndelete_st - deletes storage\nreturn - returns password\nadd - adds a new password\nback - goes back to the storage menu\nshow - shows all the passwords\nremove - removes password\nhelp - clears the screen and shows commands")
             print("-------------------------------------------------")
         
         
@@ -73,9 +74,9 @@ def does_stuff_to_files(chosen_file, mainn): # storage menu
             with open(f"passwords/{chosen_file}", "r") as f:
                 py_dictionary = json.load(f)  # python dictionary
                 f.close()
-            print("enter the account : password that you want to remove.enter <-stop-> to get out: ")
+            print("enter the account : password that you want to remove.enter <-stop-> to stop removing: ")
             while True:
-                remove_which = input("> ")
+                remove_which = input("remove> ")
                 if remove_which == "<-stop->":
                     break
 
@@ -96,9 +97,9 @@ def does_stuff_to_files(chosen_file, mainn): # storage menu
             with open(f"passwords/{chosen_file}", "r") as f:
                 py_dictionary = json.load(f)  # python dictionary
                 f.close()
-            print("which password do you want? (enter <-stop-> to go back)")
+            print("which password do you want? (enter <-stop-> to go to the storage menu)")
             while True:
-                which_one = input("> ")
+                which_one = input("return> ")
                 if which_one == "<-stop->":
                     break
 
@@ -117,11 +118,14 @@ def does_stuff_to_files(chosen_file, mainn): # storage menu
             
 
             os.system('cls')
-            print("if you enter a taken key then the new password will replace the old one. enter <-stop-> for either key or password and youll return to storage menu")
-            print("---------------------------------------------------------------------------------------------------------------------------------------------------")
+            print("if you enter a taken key then the new password will replace the old one.\nenter <-stop-> for either key or password to stop adding passwords")
+            print("-------------------------------------------------------------------------------------------------------------------")
             while True:
                 keyy = input('enter key: ')
-                password = input(f"enter password for {keyy}: ")
+                if keyy == "<-stop->":
+                    password = input(f"press enter to stop adding: ")
+                else:
+                    password = input(f"enter password for {keyy}: ")
 
                 if keyy == "<-stop->" or password == "<-stop->":
                     dumper = json.dumps(py_dictionary, indent=1)
@@ -130,29 +134,34 @@ def does_stuff_to_files(chosen_file, mainn): # storage menu
                         
                         f.close()
                     os.system("cls")
-                    mainn()
+                    print("the options(pick one):\ndelete_st - deletes storage\nreturn - returns password\nadd - adds a new password\nback - goes back to the storage menu\nshow - shows all the passwords\nremove - removes password\nhelp - clears the screen and shows commands")
+                    print("-------------------------------------------------")
+                    
+                    break
                 else:
                     py_dictionary[keyy] = password
                     
 
-                    print(f"{keyy} : {password} has been added to {chosen_file}\n---------------------------")
+                    print(f"{keyy} : {password} has been added to {chosen_file}\n------------------------------------")
 
 
                 
                     
 def pick_create_txt(): # main
-    onlyfiles = next(os.walk("passwords"))[2] # list of all the txt files in passwords
+    os.system('cls')
+    onlyfiles = next(os.walk("passwords"))[2] # list of all the files in passwords
     sorted(onlyfiles)
     first_options = ["new"] + onlyfiles
 
-    
 
+    
+    print("storage menu\n")
     print("options with the .json extention is available storage\n--------------------------------------------------------\nnew - creates a new storage")
     for storage in onlyfiles:
         print(storage)
     print("--------------------------------------------------------\npick an option from above^(include .json when picking files)")
     while True:
-        picker = input("> ")
+        picker = input("> ") 
         if picker not in first_options:
             print("that isnt an option.")
 
