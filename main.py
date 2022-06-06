@@ -149,6 +149,7 @@ def does_stuff_to_files(chosen_file, mainn): # storage menu
                     
 def pick_create_txt(): # main
     os.system('cls')
+    os.system('color 2')
     onlyfiles = next(os.walk("passwords"))[2] # list of all the files in passwords
     sorted(onlyfiles)
     first_options = ["new"] + onlyfiles
