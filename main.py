@@ -1,6 +1,6 @@
 import os
 import json
-
+# commit test
 onlyfiles = next(os.walk("passwords"))[2] # list of all the txt files in passwords
 sorted(onlyfiles)
 
