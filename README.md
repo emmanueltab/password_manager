@@ -1,7 +1,3 @@
-Here is a **clean, professional, and clear README** you can paste directly into your repository.
-No emojis, no filler, just a solid GitHub-style project description.
-
----
 
 # Password Manager (Python + JSON)
 
@@ -102,22 +98,8 @@ Inside a storage:
 
 ## Future Improvements
 
-If you plan to expand this project, possible additions include:
-
 * Password encryption
 * A GUI interface
 * Environment variable support
 * Password strength checker
 * Search functionality
-
----
-
-If you want, I can also generate:
-
-* A LICENSE file
-* A `.gitignore`
-* A more aesthetic GitHub README
-* Install instructions
-* Example output section
-
-Just let me know.
