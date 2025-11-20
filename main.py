@@ -7,195 +7,177 @@ import json
 PASSWORD_FOLDER = "passwords"
 
 #-------------------------
-# HELPER FUNCTIONS
+# HELPERS
 #-------------------------
 def clear_screen():
-    """Clears the terminal screen."""
     os.system('cls' if os.name == 'nt' else 'clear')
 
 
 def list_storages():
-    """Returns a sorted list of JSON files in the password folder."""
     try:
         files = next(os.walk(PASSWORD_FOLDER))[2]
         return sorted([f for f in files if f.endswith(".json")])
     except StopIteration:
         return []
 
+
+def load_storage(file_name):
+    filepath = os.path.join(PASSWORD_FOLDER, file_name)
+    with open(filepath, 'r') as f:
+        return json.load(f)
+
+
+def save_storage(file_name, data):
+    filepath = os.path.join(PASSWORD_FOLDER, file_name)
+    with open(filepath, 'w') as f:
+        json.dump(data, f, indent=2)
+
+#-------------------------
+# COMMAND FUNCTIONS
+#-------------------------
+def add(file_name, args):
+    """Usage: add key password"""
+    if len(args) < 2:
+        print("Usage: add key password")
+        return
+    key, password = args[0], " ".join(args[1:])
+    data = load_storage(file_name)
+    data[key] = password
+    save_storage(file_name, data)
+    print(f"{key} added with password.")
+
+
+def remove(file_name, args):
+    """Usage: remove key"""
+    if len(args) != 1:
+        print("Usage: remove key")
+        return
+    key = args[0]
+    data = load_storage(file_name)
+    if key in data:
+        data.pop(key)
+        save_storage(file_name, data)
+        print(f"{key} removed.")
+    else:
+        print(f"{key} not found.")
+
+
+def show(file_name, args):
+    """Usage: show"""
+    data = load_storage(file_name)
+    if not data:
+        print("No passwords stored.")
+    else:
+        for k, v in data.items():
+            print(f"{k} : {v}")
+
+
+def get(file_name, args):
+    """Usage: get key"""
+    if len(args) != 1:
+        print("Usage: get key")
+        return
+    key = args[0]
+    data = load_storage(file_name)
+    print(data.get(key, f"{key} not found."))
+
+
+def delete(file_name, args):
+    """Usage: delete"""
+    filepath = os.path.join(PASSWORD_FOLDER, file_name)
+    os.remove(filepath)
+    print(f"{file_name} deleted.")
+
+
+#-------------------------
+# STORAGE MENU
+#-------------------------
+def manage_storage(file_name):
+    commands = {
+        "add": add,
+        "remove": remove,
+        "show": show,
+        "get": get,
+        "delete": delete,
+        "help": None  # handled separately
+    }
+
+    while True:
+        clear_screen()
+        print(f"Storage: {file_name}")
+        print("Commands: add, remove, get, show, delete, back, help")
+        user_input = input("> ").strip()
+        if not user_input:
+            continue
+        parts = user_input.split()
+        command, args = parts[0], parts[1:]
+
+        if command == "back":
+            break
+        elif command == "help":
+            print("\nCommand syntax:")
+            print("add key password    - Add or update a password")
+            print("remove              - Remove a password")
+            print("get key             - Show a single password")
+            print("show                - Show all passwords")
+            print("delete              - Delete the entire storage")
+            print("back                - Return to storage menu")
+            input("\nPress Enter to continue...")
+        elif command in commands:
+            commands[command](file_name, args)
+            input("\nPress Enter to continue...")
+        else:
+            print("Invalid command!")
+            input("\nPress Enter to continue...")
+
 #-------------------------
 # CREATE NEW STORAGE
 #-------------------------
-def create_password_storage():
-    """Prompts user to create a new JSON password storage."""
+def create_storage():
     clear_screen()
-    print("Storage Creator\n")
     storages = list_storages()
-    
     print("Existing storages:")
-    print("-----------------------------------")
-    for file in storages:
-        print(file)
-    print("-----------------------------------")
-    print("Enter '<!back>' to return to the storage menu.")
-    print("-----------------------------------")
+    for s in storages:
+        print(s)
+    print("-------------------")
+    print("Enter '<!back>' to return to menu.")
 
-    storage_name = input("Enter a name to create a storage (you don't need to add .json):\n> ")
-    if storage_name == "<!back>":
-        return None
-
-    filepath = os.path.join(PASSWORD_FOLDER, f"{storage_name}.json")
-    if not os.path.exists(filepath):
+    name = input("Storage name: ").strip()
+    if name == "<!back>":
+        return
+    filepath = os.path.join(PASSWORD_FOLDER, f"{name}.json")
+    if os.path.exists(filepath):
+        print(f"{name}.json already exists!")
+    else:
         with open(filepath, 'w') as f:
             json.dump({}, f)
-        print("New .json file has been created!")
-    else:
-        print(f"{storage_name}.json already exists!")
+        print(f"{name}.json created!")
     input("\nPress Enter to continue...")
 
 #-------------------------
-# MANAGE EXISTING STORAGE
-#-------------------------
-def manage_storage(file_name):
-    """Allows user to view, add, remove, or delete passwords in a storage."""
-    clear_screen()
-    filepath = os.path.join(PASSWORD_FOLDER, file_name)
-
-    #-------------------------
-    # HELPER FUNCTION: SHOW OPTIONS
-    #-------------------------
-    def show_options():
-        print("\nStorage Modifier Options:")
-        print("delete_st - deletes storage")
-        print("return - returns password")
-        print("add - adds a new password")
-        print("back - goes back to the storage menu")
-        print("show - shows all the passwords")
-        print("remove - removes a password")
-        print("help - clears screen and shows commands")
-        print("-----------------------------------")
-
-    #-------------------------
-    # COMMAND FUNCTIONS
-    #-------------------------
-    def cmd_back():
-        return "back"
-
-    def cmd_delete_st():
-        os.remove(filepath)
-        print(f"{file_name} has been deleted.")
-        return "back"
-
-    def cmd_help():
-        clear_screen()
-        show_options()
-
-    def cmd_show():
-        with open(filepath, 'r') as f:
-            data = json.load(f)
-        print(data)
-
-    def cmd_remove():
-        with open(filepath, 'r') as f:
-            data = json.load(f)
-        print("Enter the account key you want to remove. Enter '<-stop->' to stop removing.")
-        while True:
-            key = input("remove> ").strip()
-            if key == "<-stop->":
-                break
-            if key in data:
-                data.pop(key)
-                print(f"{key} has been removed.")
-            else:
-                print(f"{key} is not in {file_name}.")
-        with open(filepath, 'w') as f:
-            json.dump(data, f, indent=2)
-
-    def cmd_return():
-        with open(filepath, 'r') as f:
-            data = json.load(f)
-        print("Enter the account key you want to view. Enter '<-stop->' to stop.")
-        while True:
-            key = input("return> ").strip()
-            if key == "<-stop->":
-                break
-            print(data.get(key, f"There isn't a password associated with {key}"))
-
-    def cmd_add():
-        with open(filepath, 'r') as f:
-            data = json.load(f)
-        print("Adding new passwords. Enter '<-stop->' for either key or password to stop adding.")
-        while True:
-            key = input("Enter key: ").strip()
-            if key == "<-stop->":
-                break
-            password = input(f"Enter password for {key}: ").strip()
-            if password == "<-stop->":
-                break
-            data[key] = password
-            print(f"{key} : {password} has been added.")
-        with open(filepath, 'w') as f:
-            json.dump(data, f, indent=2)
-
-    #-------------------------
-    # COMMAND DICTIONARY
-    #-------------------------
-    commands = {
-        "back": cmd_back,
-        "delete_st": cmd_delete_st,
-        "help": cmd_help,
-        "show": cmd_show,
-        "remove": cmd_remove,
-        "return": cmd_return,
-        "add": cmd_add
-    }
-
-    show_options()
-    print(f"\nManaging storage: {file_name}\n")
-
-    #-------------------------
-    # MAIN LOOP FOR STORAGE MENU
-    #-------------------------
-    while True:
-        choice = input("> ").strip()
-        action = commands.get(choice)
-        if action:
-            result = action()
-            if result == "back":
-                break
-        else:
-            print("That isn't an option.")
-
-#-------------------------
-# MAIN MENU FUNCTION
+# MAIN MENU
 #-------------------------
 def main():
-    """Main loop of the program: lists storages, allows creation or selection."""
     os.makedirs(PASSWORD_FOLDER, exist_ok=True)
-
     while True:
         clear_screen()
+        print("Storage Menu:")
         storages = list_storages()
-        print("Storage Menu\n")
-        print("Available storages:")
-        print("--------------------------------------------------------")
         for s in storages:
             print(s)
-        print("--------------------------------------------------------")
-        print("Options: 'new' - create a new storage")
-        print("Type 'quit' to exit the program.")
-        print("Pick an option from above (include .json when picking files)")
+        print("-------------------")
+        print("Commands: new, quit, or select a storage")
 
         choice = input("> ").strip()
-
-        if choice.lower() == "quit":
-            print("Exiting program...")
+        if choice == "quit":
+            print("Exiting...")
             break
         elif choice == "new":
-            create_password_storage()
+            create_storage()
         elif choice in storages:
             manage_storage(choice)
         else:
-            print("That isn't an option.")
+            print("Invalid option!")
             input("\nPress Enter to continue...")
 
 #-------------------------
