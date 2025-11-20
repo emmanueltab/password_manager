@@ -1,186 +1,205 @@
 import os
 import json
 
-onlyfiles = next(os.walk("passwords"))[2] # list of all the txt files in passwords
-sorted(onlyfiles)
+#-------------------------
+# CONSTANTS
+#-------------------------
+PASSWORD_FOLDER = "passwords"
+
+#-------------------------
+# HELPER FUNCTIONS
+#-------------------------
+def clear_screen():
+    """Clears the terminal screen."""
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 
+def list_storages():
+    """Returns a sorted list of JSON files in the password folder."""
+    try:
+        files = next(os.walk(PASSWORD_FOLDER))[2]
+        return sorted([f for f in files if f.endswith(".json")])
+    except StopIteration:
+        return []
 
-def create_passwordsTXT(mainnn):
-    onlyfiles = next(os.walk("passwords"))[2] # list of all the txt files in passwords
-    sorted(onlyfiles)
-    print("storage creator\n\nthe storages:\n-----------------------------------")
-    for file in onlyfiles:
+#-------------------------
+# CREATE NEW STORAGE
+#-------------------------
+def create_password_storage():
+    """Prompts user to create a new JSON password storage."""
+    clear_screen()
+    print("Storage Creator\n")
+    storages = list_storages()
+    
+    print("Existing storages:")
+    print("-----------------------------------")
+    for file in storages:
         print(file)
-    print("-----------------------------------\nentering a taken name wont do anything\nenter '<!back>' to return to the storage menu\n-----------------------------------")
-    ask_for_name = input("enter a name to create a storage(you dont have to enter .json):\n> ")
-  # if there are no txt files for the passwords thne it will do this
-    if ask_for_name == "<!back>":
-        os.system('cls')
-        mainnn()
+    print("-----------------------------------")
+    print("Enter '<!back>' to return to the storage menu.")
+    print("-----------------------------------")
+
+    storage_name = input("Enter a name to create a storage (you don't need to add .json):\n> ")
+    if storage_name == "<!back>":
+        return None
+
+    filepath = os.path.join(PASSWORD_FOLDER, f"{storage_name}.json")
+    if not os.path.exists(filepath):
+        with open(filepath, 'w') as f:
+            json.dump({}, f)
+        print("New .json file has been created!")
     else:
+        print(f"{storage_name}.json already exists!")
+    input("\nPress Enter to continue...")
 
-        pw = {}
-        pw2 = json.dumps(pw)
-        with open(f"passwords\{ask_for_name}.json", 'w') as writer: # creates json file
-            writer.write(pw2)
-            print("new .json file has been created!")
-            writer.close()
-        
+#-------------------------
+# MANAGE EXISTING STORAGE
+#-------------------------
+def manage_storage(file_name):
+    """Allows user to view, add, remove, or delete passwords in a storage."""
+    clear_screen()
+    filepath = os.path.join(PASSWORD_FOLDER, file_name)
 
+    #-------------------------
+    # HELPER FUNCTION: SHOW OPTIONS
+    #-------------------------
+    def show_options():
+        print("\nStorage Modifier Options:")
+        print("delete_st - deletes storage")
+        print("return - returns password")
+        print("add - adds a new password")
+        print("back - goes back to the storage menu")
+        print("show - shows all the passwords")
+        print("remove - removes a password")
+        print("help - clears screen and shows commands")
+        print("-----------------------------------")
 
+    #-------------------------
+    # COMMAND FUNCTIONS
+    #-------------------------
+    def cmd_back():
+        return "back"
 
-def does_stuff_to_files(chosen_file, mainn): # storage menu
-    os.system('cls')
-    optionss = ("delete_st", "return", "add", "back", "show", "remove", "help")
-    print("storage modifyer\n")
-    print("the options(pick one):\ndelete_st - deletes storage\nreturn - returns password\nadd - adds a new password\nback - goes back to the storage menu\nshow - shows all the passwords\nremove - removes password\nhelp - clears screen and shows commands")
-    print(f"----------------------------------------\nwhat would you like to do with {chosen_file}?")
-    
+    def cmd_delete_st():
+        os.remove(filepath)
+        print(f"{file_name} has been deleted.")
+        return "back"
 
+    def cmd_help():
+        clear_screen()
+        show_options()
+
+    def cmd_show():
+        with open(filepath, 'r') as f:
+            data = json.load(f)
+        print(data)
+
+    def cmd_remove():
+        with open(filepath, 'r') as f:
+            data = json.load(f)
+        print("Enter the account key you want to remove. Enter '<-stop->' to stop removing.")
+        while True:
+            key = input("remove> ").strip()
+            if key == "<-stop->":
+                break
+            if key in data:
+                data.pop(key)
+                print(f"{key} has been removed.")
+            else:
+                print(f"{key} is not in {file_name}.")
+        with open(filepath, 'w') as f:
+            json.dump(data, f, indent=2)
+
+    def cmd_return():
+        with open(filepath, 'r') as f:
+            data = json.load(f)
+        print("Enter the account key you want to view. Enter '<-stop->' to stop.")
+        while True:
+            key = input("return> ").strip()
+            if key == "<-stop->":
+                break
+            print(data.get(key, f"There isn't a password associated with {key}"))
+
+    def cmd_add():
+        with open(filepath, 'r') as f:
+            data = json.load(f)
+        print("Adding new passwords. Enter '<-stop->' for either key or password to stop adding.")
+        while True:
+            key = input("Enter key: ").strip()
+            if key == "<-stop->":
+                break
+            password = input(f"Enter password for {key}: ").strip()
+            if password == "<-stop->":
+                break
+            data[key] = password
+            print(f"{key} : {password} has been added.")
+        with open(filepath, 'w') as f:
+            json.dump(data, f, indent=2)
+
+    #-------------------------
+    # COMMAND DICTIONARY
+    #-------------------------
+    commands = {
+        "back": cmd_back,
+        "delete_st": cmd_delete_st,
+        "help": cmd_help,
+        "show": cmd_show,
+        "remove": cmd_remove,
+        "return": cmd_return,
+        "add": cmd_add
+    }
+
+    show_options()
+    print(f"\nManaging storage: {file_name}\n")
+
+    #-------------------------
+    # MAIN LOOP FOR STORAGE MENU
+    #-------------------------
+    while True:
+        choice = input("> ").strip()
+        action = commands.get(choice)
+        if action:
+            result = action()
+            if result == "back":
+                break
+        else:
+            print("That isn't an option.")
+
+#-------------------------
+# MAIN MENU FUNCTION
+#-------------------------
+def main():
+    """Main loop of the program: lists storages, allows creation or selection."""
+    os.makedirs(PASSWORD_FOLDER, exist_ok=True)
 
     while True:
-        operations = input("> ")
-        if operations not in optionss:
-            print('that aint an option')
-        
+        clear_screen()
+        storages = list_storages()
+        print("Storage Menu\n")
+        print("Available storages:")
+        print("--------------------------------------------------------")
+        for s in storages:
+            print(s)
+        print("--------------------------------------------------------")
+        print("Options: 'new' - create a new storage")
+        print("Type 'quit' to exit the program.")
+        print("Pick an option from above (include .json when picking files)")
 
-            
-        elif operations == "back":  # returns to main
-            os.system('cls')     # DOES NOT REQUIRE py_dictionary
-            mainn()
+        choice = input("> ").strip()
 
-        elif operations == "delete_st":      # deletes the file the user selected and returns to main
-            os.remove(f"passwords/{chosen_file}")  # DOES NOT REQUIRE py_dictionary
-            os.system('cls')        
-            mainn()
+        if choice.lower() == "quit":
+            print("Exiting program...")
+            break
+        elif choice == "new":
+            create_password_storage()
+        elif choice in storages:
+            manage_storage(choice)
+        else:
+            print("That isn't an option.")
+            input("\nPress Enter to continue...")
 
-        elif operations == "help":
-            os.system("cls")   # prints help commands
-            print("the options(pick one):\ndelete_st - deletes storage\nreturn - returns password\nadd - adds a new password\nback - goes back to the storage menu\nshow - shows all the passwords\nremove - removes password\nhelp - clears the screen and shows commands")
-            print("-------------------------------------------------")
-        
-        
-
-        elif operations == "show":
-            with open(f"passwords/{chosen_file}", "r") as f:
-                py_dictionary = json.load(f)  # python dictionary
-                f.close()
-            print(py_dictionary)
-            
-            
-        
-        elif operations == "remove":
-            with open(f"passwords/{chosen_file}", "r") as f:
-                py_dictionary = json.load(f)  # python dictionary
-                f.close()
-            print("enter the account : password that you want to remove.enter <-stop-> to stop removing: ")
-            while True:
-                remove_which = input("remove> ")
-                if remove_which == "<-stop->":
-                    break
-
-                elif remove_which not in py_dictionary:
-                    print(f"{remove_which} is not in {chosen_file}")
-                else:
-                  py_dictionary.pop(remove_which)
-                  print(f"{remove_which} has been removed from {chosen_file}\n-------------------------")
-
-                  dumper = json.dumps(py_dictionary, indent=1)
-                  with open(f"passwords/{chosen_file}", "w") as x:
-                        x.write(dumper)
-                        
-                        f.close()
-            
-
-        elif operations == "return":
-            with open(f"passwords/{chosen_file}", "r") as f:
-                py_dictionary = json.load(f)  # python dictionary
-                f.close()
-            print("which password do you want? (enter <-stop-> to go to the storage menu)")
-            while True:
-                which_one = input("return> ")
-                if which_one == "<-stop->":
-                    break
-
-                elif which_one in py_dictionary:
-                    print(py_dictionary.get(which_one))
-                else:
-                    print(f"there isnt a password associated with {which_one}")
-
-
-            
-        
-        elif operations == 'add':
-            with open(f"passwords/{chosen_file}", "r") as f:
-                py_dictionary = json.load(f)  # python dictionary
-                f.close()
-            
-
-            os.system('cls')
-            print("if you enter a taken key then the new password will replace the old one.\nenter <-stop-> for either key or password to stop adding passwords")
-            print("-------------------------------------------------------------------------------------------------------------------")
-            while True:
-                keyy = input('enter key: ')
-                if keyy == "<-stop->":
-                    password = input(f"press enter to stop adding: ")
-                else:
-                    password = input(f"enter password for {keyy}: ")
-
-                if keyy == "<-stop->" or password == "<-stop->":
-                    dumper = json.dumps(py_dictionary, indent=1)
-                    with open(f"passwords/{chosen_file}", "w") as x:
-                        x.write(dumper)
-                        
-                        f.close()
-                    os.system("cls")
-                    print("the options(pick one):\ndelete_st - deletes storage\nreturn - returns password\nadd - adds a new password\nback - goes back to the storage menu\nshow - shows all the passwords\nremove - removes password\nhelp - clears the screen and shows commands")
-                    print("-------------------------------------------------")
-                    
-                    break
-                else:
-                    py_dictionary[keyy] = password
-                    
-
-                    print(f"{keyy} : {password} has been added to {chosen_file}\n------------------------------------")
-
-
-                
-                    
-def pick_create_txt(): # main
-    os.system('cls')
-    onlyfiles = next(os.walk("passwords"))[2] # list of all the files in passwords
-    sorted(onlyfiles)
-    first_options = ["new"] + onlyfiles
-
-
-    
-    print("storage menu\n")
-    print("options with the .json extention is available storage\n--------------------------------------------------------\nnew - creates a new storage")
-    for storage in onlyfiles:
-        print(storage)
-    print("--------------------------------------------------------\npick an option from above^(include .json when picking files)")
-    while True:
-        picker = input("> ") 
-        if picker not in first_options:
-            print("that isnt an option.")
-
-        elif picker in onlyfiles:
-            return does_stuff_to_files(picker, pick_create_txt)
-            
-
-        elif picker == "new":
-            os.system('cls')
-            create_passwordsTXT(pick_create_txt)
-            os.system('cls')
-            print('that has been added to the storage folder')
-            pick_create_txt()
-            
-
-
-
-pick_create_txt()
-
-
-    
-
+#-------------------------
+# PROGRAM ENTRY POINT
+#-------------------------
+if __name__ == "__main__":
+    main()
